@@ -75,7 +75,6 @@ class TestScatterOp(OpTest):
             check_prim=True,
             check_pir=True,
             check_prim_pir=True,
-            max_relative_error=0.008,
         )
 
 
