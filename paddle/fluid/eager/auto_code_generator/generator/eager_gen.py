@@ -206,6 +206,7 @@ strided_op_list = {
     "unbind",
     "unsqueeze",
     "view_shape",
+    "expand_shape",
     "view_dtype",
 }
 

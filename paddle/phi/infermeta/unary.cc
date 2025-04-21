@@ -3896,6 +3896,70 @@ void ViewShapeInferMeta(const MetaTensor& input,
   InferMetaFromVecValue(input, shape, out);
 }
 
+void ExpandShapeInferMeta(const MetaTensor& input,
+                          const std::vector<int64_t>& shape,
+                          MetaTensor* out) {
+  VLOG(4) << "ExpandShapeInferMeta";
+  const auto& x_dims = common::vectorize<int64_t>(input.dims());
+  const auto& x_strides = common::vectorize<int64_t>(input.strides());
+  int x_ndim = x_dims.size();
+  int shape_ndim = shape.size();
+
+  std::vector<int64_t> out_shape(shape_ndim);
+  std::vector<int64_t> out_strides(shape_ndim);
+
+  PADDLE_ENFORCE_GE(shape_ndim,
+                    x_ndim,
+                    common::errors::InvalidArgument(
+                        "The number of shape provided (%d) must be greater or "
+                        "equal to the number of dimensions of input (%d)",
+                        shape_ndim,
+                        x_ndim));
+  for (int i = shape_ndim - 1; i >= 0; --i) {
+    int offset = shape_ndim - 1 - i;  // 0, 1, ... shape_ndim-1
+    int x_index =
+        x_ndim - 1 -
+        offset;  // x_ndim-1, x_ndim-2, ... 0, -1, ..., x_ndim-1-(shape_ndim-1)
+    int64_t size = (x_index >= 0) ? x_dims[x_index] : 1;
+    int64_t stride_ = (x_index >= 0) ? x_strides[x_index]
+                                     : out_shape[i + 1] * out_strides[i + 1];
+    int64_t targetSize = shape[i];
+
+    if (targetSize == -1) {
+      PADDLE_ENFORCE_GE(x_index,
+                        0,
+                        "The expanded size of the tensor (%lld) isn't allowed "
+                        "in a leading, non-existing dimension (%d)",
+                        targetSize,
+                        i);
+      targetSize = size;
+    }
+
+    if (size != targetSize) {
+      PADDLE_ENFORCE_EQ(size,
+                        1,
+                        "The expanded size of the tensor (%lld",
+                        ") must match the existing size (%lld",
+                        ") at non-singleton dimension (%d)",
+                        ". Target sizes: (%s)",
+                        ". Tensor sizes: (%s)",
+                        targetSize,
+                        size,
+                        i,
+                        common::make_ddim(out_shape),
+                        common::make_ddim(shape));
+      size = targetSize;
+      stride_ = 0;
+    }
+    out_shape[i] = size;
+    out_strides[i] = stride_;
+  }
+  out->set_dims(common::make_ddim(out_shape));
+  out->set_strides(common::make_ddim(out_strides));
+  out->set_dtype(input.dtype());
+  VLOG(4) << "Finished ExpandShapeInferMeta";
+}
+
 void ReshapeWithXShapeInferMeta(const MetaTensor& x,
                                 const IntArray& shape,
                                 MetaTensor* out,

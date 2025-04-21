@@ -12,24 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "paddle/phi/kernels/expand_kernel.h"
 
-#include "paddle/phi/common/int_array.h"
+#include "glog/logging.h"
+#include "paddle/phi/backends/gpu/gpu_context.h"
+#include "paddle/phi/common/scalar.h"
 #include "paddle/phi/core/dense_tensor.h"
-#include "paddle/phi/core/device_context.h"
+#include "paddle/phi/core/kernel_registry.h"
+#include "paddle/phi/kernels/funcs/broadcast_function.h"
 
 namespace phi {
 
-template <typename T, typename Context>
-void ExpandKernel(const Context& ctx,
-                  const DenseTensor& x,
-                  const IntArray& shape,
-                  DenseTensor* out);
-
 template <typename Context>
-void ExpandShapeStridedKernel(const Context& ctx,
-                              const DenseTensor& x,
-                              const IntArray& shape,
-                              DenseTensor* out);
+void ExpandStridedKernel(const Context& ctx,
+                         const DenseTensor& x,
+                         const IntArray& dims,
+                         DenseTensor* out) {
+  out->ResetHolder(x.Holder());
+  out->ShareInplaceVersionCounterWith(x);
+}
 
 }  // namespace phi
+
+PD_REGISTER_KERNEL_FOR_ALL_BACKEND_DTYPE(expand_shape,
+                                         STRIDED,
+                                         phi::ExpandStridedKernel) {}

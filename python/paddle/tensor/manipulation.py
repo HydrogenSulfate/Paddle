@@ -7214,6 +7214,50 @@ def view(
 
 
 @dygraph_only
+def expand_view(
+    x: Tensor,
+    shape: Sequence[int] | DTypeLike,
+    name: str | None = None,
+) -> Tensor:
+    """
+    Expand x with given specified shape via 0-strided Tensor.
+
+    Note that the output Tensor will share data with origin Tensor and doesn't
+    have a Tensor copy in ``dygraph`` mode.
+
+    Args:
+        x (Tensor): An N-D Tensor. The data type is ``float32``, ``float64``, ``int32``, ``int64`` or ``bool``
+        shape (list|tuple|np.dtype|str|VarType): Define the target shape or dtype. If list or tuple, shape represents shape, each element of it should be integer.
+        name (str, optional): Name for the operation (optional, default is None). For more information, please refer to :ref:`api_guide_Name`.
+
+    Returns:
+        Tensor, A expanded Tensor with the same data as ``x``.
+
+    Examples:
+        .. code-block:: python
+
+            >>> import paddle
+            >>> paddle.base.set_flags({"FLAGS_use_stride_kernel": True})
+
+            >>> x = paddle.rand([2, 3], dtype="float32")
+
+            >>> out = paddle.expand_view(x, [4, 2, 3])
+            >>> print(out.shape)
+            [4, 2, 3]
+
+            >>> import paddle
+            >>> paddle.base.set_flags({"FLAGS_use_stride_kernel": True})
+
+            >>> x = paddle.rand([2, 4, 6], dtype="float32")
+
+            >>> out = paddle.view(x, [8, -1, -1, 6])
+            >>> print(out.shape)
+            [8, 2, 4, 6]
+    """
+    return _C_ops.expand_shape(x, shape)
+
+
+@dygraph_only
 def view_as(x: Tensor, other: Tensor, name: str | None = None) -> Tensor:
     """
     View x with other's shape.
