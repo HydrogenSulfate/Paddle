@@ -23,17 +23,55 @@
 
 namespace phi {
 
-template <typename Context>
+template <typename T, typename Context>
 void ExpandStridedKernel(const Context& ctx,
                          const DenseTensor& x,
                          const IntArray& dims,
                          DenseTensor* out) {
+  bool zero_size = false;
+  auto dims_vec = dims.GetData();
+  for (int i = 0, sz = dims_vec.size(); i < sz; ++i) {
+    if (dims_vec[i] == 0) {
+      zero_size = true;
+      break;
+    }
+  }
+  if (zero_size) {
+    ctx.template Alloc<T>(out);
+    return;
+  }
   out->ResetHolder(x.Holder());
   out->ShareInplaceVersionCounterWith(x);
 }
 
 }  // namespace phi
 
-PD_REGISTER_KERNEL_FOR_ALL_BACKEND_DTYPE(expand_shape,
-                                         STRIDED,
-                                         phi::ExpandStridedKernel) {}
+PD_REGISTER_KERNEL(expand_shape,
+                   CPU,
+                   STRIDED,
+                   phi::ExpandStridedKernel,
+                   bool,
+                   int,
+                   int64_t,
+                   float,
+                   double,
+                   phi::dtype::float16,
+                   phi::dtype::bfloat16,
+                   phi::dtype::complex<float>,
+                   phi::dtype::complex<double>) {}
+
+#if defined(PADDLE_WITH_CUDA)
+PD_REGISTER_KERNEL(expand_shape,
+                   GPU,
+                   STRIDED,
+                   phi::ExpandStridedKernel,
+                   bool,
+                   int,
+                   int64_t,
+                   float,
+                   double,
+                   phi::dtype::float16,
+                   phi::dtype::bfloat16,
+                   phi::dtype::complex<float>,
+                   phi::dtype::complex<double>) {}
+#endif
