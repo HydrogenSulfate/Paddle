@@ -21,6 +21,7 @@ limitations under the License. */
 #include <unordered_map>
 #include <vector>
 
+#include "glog/logging.h"
 #include "paddle/phi/core/enforce.h"
 
 namespace phi {
@@ -60,22 +61,28 @@ inline int64_t canonical_dim(int dim, int ndim) {
   return dim;
 }
 
-// Refer to https://stackoverflow.com/a/5289170
 template <typename Range, typename Value = typename Range::value_type>
-std::string str_join(Range const& elements,
-                     const std::string& delimiter = ",") {
-  std::ostringstream os;
-  auto b = std::begin(elements), e = std::end(elements);
+typename std::enable_if<
+    std::is_base_of<
+        std::bidirectional_iterator_tag,
+        typename std::iterator_traits<typename Range::iterator>::iterator_category
+    >::value,
+    std::string
+>::type
+str_join(Range const& elements, const std::string& delimiter = ",") {
+    std::ostringstream os;
+    auto b = std::begin(elements), e = std::end(elements);
 
-  if (b != e) {
-    std::copy(b, prev(e), std::ostream_iterator<Value>(os, delimiter.c_str()));
-    b = prev(e);
-  }
-  if (b != e) {
-    os << *b;
-  }
+    if (b != e) {
+        // 安全检查：确保容器不为空且prev操作有效
+        if (std::distance(b, e) > 0) {
+            std::copy(b, std::prev(e), 
+                     std::ostream_iterator<Value>(os, delimiter.c_str()));
+            os << *std::prev(e);  // 输出最后一个元素
+        }
+    }
 
-  return os.str();
+    return os.str();
 }
 
 inline std::string str_join(std::map<std::string, bool> const& elements,

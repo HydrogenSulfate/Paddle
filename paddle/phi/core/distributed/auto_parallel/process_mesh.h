@@ -35,6 +35,22 @@ class ProcessMesh {
  public:
   ProcessMesh() = default;
 
+  // 显式定义拷贝构造函数
+  ProcessMesh(const ProcessMesh& other)
+      : shape_(other.shape_),
+        process_ids_(other.process_ids_),
+        dim_names_(other.dim_names_) {
+  }
+
+  // 也建议定义拷贝赋值操作符
+  ProcessMesh& operator=(const ProcessMesh& other) {
+      if (this != &other) {
+          shape_ = other.shape_;
+          process_ids_ = other.process_ids_;
+          dim_names_ = other.dim_names_;
+      }
+      return *this;
+  }
   ProcessMesh(const std::vector<int64_t>& shape,
               const std::vector<int64_t>& process_ids,
               const std::vector<std::string>& dim_names);
