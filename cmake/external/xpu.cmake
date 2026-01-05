@@ -125,15 +125,23 @@ if(WITH_ARM)
     set(XPU_XCCL_DIR_NAME "xccl_Linux_aarch64")
     set(XPU_XHPC_DIR_NAME "xhpc-kylinv4_aarch64")
     set(XPU_XFT_DIR_NAME "") # TODO: xft has no kylin output at now.
+    if(WITH_XPU_FFT)
+      # FFT: DIR_NAME 只能是解压目录名，不能带路径
+      set(XPU_FFT_DIR_NAME "xpufft_kylinv10_aarch64")
+
+      # FFT: ARM/kylin 专用下载 URL
+      set(XPU_FFT_URL
+          "https://klx-sdk-release-public.su.bcebos.com/xpufft/kylin_v10_aarch64/${XPU_FFT_BASE_DATE}/${XPU_FFT_DIR_NAME}.tar.gz")
+    endif()
   else()
     set(XPU_XRE_DIR_NAME "")
     set(XPU_XCCL_DIR_NAME "") # TODO: xccl has no kylin output now.
     set(XPU_XFT_DIR_NAME "") # TODO: xft has no kylin output at now.
   endif()
-  if(WITH_XPU_FFT)
-    set(XPU_FFT_DIR_NAME
-        "kylin_v10_aarch64/${XPU_FFT_BASE_DATE}/xpufft_kylinv10_aarch64")
-  endif()
+  # if(WITH_XPU_FFT)
+  #   set(XPU_FFT_DIR_NAME
+  #       "kylin_v10_aarch64/${XPU_FFT_BASE_DATE}/xpufft_kylinv10_aarch64")
+  # endif()
 elseif(WITH_SUNWAY)
   set(XPU_XRE_DIR_NAME "xre-deepin_sw6_64")
   set(XPU_XCCL_DIR_NAME "") # TODO: xccl has no deepin output at now.
@@ -182,9 +190,9 @@ if(WITH_XPTI)
   set(XPU_XPTI_URL "${XPU_XPTI_BASE_URL}/${XPU_XPTI_DIR_NAME}.tar.gz")
 endif()
 
-if(WITH_XPU_FFT)
-  set(XPU_FFT_URL "${XPU_FFT_BASE_URL}/${XPU_FFT_DIR_NAME}.tar.gz")
-endif()
+# if(WITH_XPU_FFT)
+#   set(XPU_FFT_URL "${XPU_FFT_BASE_URL}/${XPU_FFT_DIR_NAME}.tar.gz")
+# endif()
 
 set(XPU_XHPC_URL
     "https://klx-sdk-release-public.su.bcebos.com/xhpc/${XPU_XHPC_BASE_DATE}/${XPU_XHPC_DIR_NAME}.tar.gz"
